@@ -2,6 +2,7 @@ package io.zipcoder.persistenceapp.services;
 
 import io.zipcoder.persistenceapp.models.Department;
 import io.zipcoder.persistenceapp.models.Employee;
+import io.zipcoder.persistenceapp.repositories.DepartmentRepository;
 import io.zipcoder.persistenceapp.repositories.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ public class EmployeeService {
 
     @Autowired
     private EmployeeRepository employeeRepository;
+    private DepartmentService departmentService;
 
     // UNNECESSARY DUE TO THE ABOVE
 //    public EmployeeService(EmployeeRepository repository) {
@@ -51,14 +53,19 @@ public class EmployeeService {
         return lostPuppies;
     }
 
-    public Iterable<Employee> getDepartmentRoster(Department department){
-        ArrayList<Employee> departmentRoster = new ArrayList<>();
-        for (Employee employee : employeeRepository.findAll()){
-            if (getReportingHierarchy(employee).contains(department.getDepartmentManager())){
-                departmentRoster.add(employee);
+    // THIS SHOULD ALSO RETURN AN EMPTY ArrayList IF (Employee manager) IS NOT ACTUALLY A MANAGER
+    public Iterable<Employee> getDirectAndIndirectReports(Employee manager){
+        ArrayList<Employee> allReports = new ArrayList<>();
+        for (Employee employee : getAll()){
+            if (getReportingHierarchy(employee).contains(manager)){
+                allReports.add(employee);
             }
         }
-        return departmentRoster;
+        return allReports;
+    }
+
+    public Iterable<Employee> getDepartmentRoster(Department department){
+        return getDirectAndIndirectReports(department.getDepartmentManager());
     }
 
     public Employee create(Employee employee) {
@@ -78,8 +85,97 @@ public class EmployeeService {
     }
 
     public Boolean delete(Long id) {
-        employeeRepository.delete(id);
-        return true;
+        try {
+            employeeRepository.delete(id);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public Boolean purgeDirectAndIndirectReports(Employee manager){
+        try {
+            Iterable<Employee> purgeList = getDirectAndIndirectReports(manager);
+            massPurge(purgeList);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public Boolean purgeDepartment(Department department){
+        try{
+            Iterable<Employee> purgeList = getDepartmentRoster(department);
+            massPurge(purgeList);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void massPurge(Iterable<Employee> employees) throws Exception{
+        for (Employee employee : employees){
+            delete(employee.getEmployeeNumber());
+        }
+    }
+
+    public Boolean removeDirectReportsAndPromoteSubordinates(Employee manager) {
+        try {
+            ArrayList<Employee> grandReports = new ArrayList<>();
+            for (Employee employee : getDirectReports(manager)) {
+                for (Employee grandkid : getDirectReports(employee)) {
+                    grandReports.add(grandkid);
+                }
+            }
+            for (Employee employee : getDirectReports(manager)) {
+                delete(employee.getEmployeeNumber());
+            }
+            for (Employee grandkid : grandReports) {
+                grandkid.setManager(manager);
+            }
+            return true;
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public Employee getEmployeeInfo(Long id){
+        Employee employee = getOne(id);
+        System.out.format("****************************************" +
+                "Name: %s %s\n" +
+                "Title: %s\n" +
+                "Phone: %s\n" +
+                "Hire Date: %s\n" +
+                "Department: %s" +
+                "Manager: %s" +
+                "****************************************",
+                employee.getFirstName(), employee.getLastName(),
+                employee.getTitle(),
+                employee.getPhoneNumber(),
+                employee.getHireDate().toString(),
+                departmentService.getOne(employee.getDepartmentNumber()),
+                employee.getManager());
+        return employee;
+    }
+
+    public Boolean mergeDepartments(Department gainingDept, Department losingDept){
+        try{
+            for(Employee employee : getDepartmentRoster(losingDept)){
+                employee.setDepartmentNumber(gainingDept.getDepartmentNumber());
+            }
+            losingDept.getDepartmentManager().setManager(gainingDept.getDepartmentManager());
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
     }
 
 }

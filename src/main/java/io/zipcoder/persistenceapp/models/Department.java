@@ -10,7 +10,7 @@ public class Department {
 
     @Id
     @GeneratedValue
-    private Integer departmentNumber;
+    private Long departmentNumber;
 
     private String departmentName;
 
@@ -24,7 +24,7 @@ public class Department {
         this.departmentManager = departmentManager;
     }
 
-    public Integer getDepartmentNumber() {
+    public Long getDepartmentNumber() {
         return departmentNumber;
     }
 
@@ -47,4 +47,5 @@ public class Department {
     public void setDepartmentManager(Employee departmentManager) {
         this.departmentManager = departmentManager;
     }
+
 }

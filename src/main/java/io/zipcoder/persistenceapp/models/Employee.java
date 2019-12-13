@@ -20,7 +20,7 @@ public class Employee {
     private Employee manager;
 
     @ManyToOne //fetch stuff?
-    private Integer departmentNumber;
+    private Long departmentNumber;
 
     public Employee(){}
 
@@ -105,11 +105,11 @@ public class Employee {
         this.manager = manager;
     }
 
-    public Integer getDepartmentNumber() {
+    public Long getDepartmentNumber() {
         return departmentNumber;
     }
 
-    public void setDepartmentNumber(Integer departmentNumber) {
+    public void setDepartmentNumber(Long departmentNumber) {
         this.departmentNumber = departmentNumber;
     }
 }
