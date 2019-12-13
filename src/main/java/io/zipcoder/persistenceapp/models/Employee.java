@@ -1,9 +1,6 @@
 package io.zipcoder.persistenceapp.models;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import java.util.Date;
 
 @Entity
@@ -19,8 +16,10 @@ public class Employee {
     private String email;
     private Date hireDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Employee manager;
+
+    @ManyToOne //fetch stuff?
     private Integer departmentNumber;
 
     public Employee(){}
@@ -30,15 +29,15 @@ public class Employee {
 //    }
 
 
-    public Employee(String firstName, String lastName, String title, String phoneNumber, String email, Date hireDate, Employee manager, Integer departmentNumber) {
+    public Employee(String firstName, String lastName, String title, String phoneNumber, String email) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.title = title;
         this.phoneNumber = phoneNumber;
         this.email = email;
-        this.hireDate = hireDate;
-        this.manager = manager;
-        this.departmentNumber = departmentNumber;
+//        this.hireDate = hireDate;
+//        this.manager = manager;
+//        this.departmentNumber = departmentNumber;
     }
 
     public Long getEmployeeNumber() {
